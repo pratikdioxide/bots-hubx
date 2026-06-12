@@ -1,22 +1,26 @@
 /**
- * NestX · TG Forward Bot
- * Listens to Supabase realtime. When the other user sends a message
- * on your NestX chat, it forwards a notification to your Telegram —
- * disguised as a casual update so it blends in your notifications.
+ * NestX · Telegram Forward Bot
+ * ------------------------------------
+ * Listens to Supabase realtime. When the OTHER user sends a message,
+ * it forwards it to your Telegram chat — disguised as a weather/news update.
+ * Nothing appears in the admin panel — all config is via env vars.
  *
- * ENV VARS:
- *   TG_FWD_BOT_TOKEN     Telegram bot token
- *   TG_CHAT_ID           Your Telegram chat ID where alerts go
+ * Deploy on Render (free tier) as a background worker.
+ * Ping every 5 min from UptimeRobot to keep it alive.
+ *
+ * ENV VARS (set in Render / Vercel dashboard):
+ *   TG_FWD_BOT_TOKEN     Telegram bot token (different bot from the IG one)
+ *   TG_CHAT_ID           Your Telegram user/chat ID where alerts are sent
  *   SUPABASE_URL         e.g. https://xxxx.supabase.co
  *   SUPABASE_SERVICE_KEY Supabase service-role secret key
- *   ADMIN_SENDER_ID      UUID of your admin user — their messages are skipped
- *   CHAT_SECRET          Same as VITE_CHAT_SECRET in your NestX web app
+ *   ADMIN_SENDER_ID      UUID of admin "bleh" — their messages are ignored
+ *   CHAT_SECRET          Same value as VITE_CHAT_SECRET in the web app (for decryption)
+ *
+ * Install deps: npm install @supabase/supabase-js node-fetch
  */
 
 const { createClient } = require("@supabase/supabase-js");
 const { webcrypto } = require("crypto");
-const { botStatuses } = require("./state");
-
 const crypto = webcrypto;
 
 const {
@@ -28,18 +32,14 @@ const {
   CHAT_SECRET,
 } = process.env;
 
-const state = botStatuses.tgForward;
-
 if (!TG_FWD_BOT_TOKEN || !TG_CHAT_ID || !SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-  state.status = "error";
-  state.error = "Missing required env vars";
-  console.error("[TGFwd] Missing required env vars — bot disabled.");
-  return;
+  console.error("Missing required env vars. Check TG_FWD_BOT_TOKEN, TG_CHAT_ID, SUPABASE_URL, SUPABASE_SERVICE_KEY.");
+  process.exit(1);
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-// ── Disguise templates ────────────────────────────────────────────────────────
+// ── Disguise templates — one is picked randomly each time ──────────────────
 const TEMPLATES = [
   (t) => `🌤 <b>Weather Update</b>\nToday's forecast: <i>${t}</i>\nStay prepared.`,
   (t) => `📰 <b>News Flash</b>\nBreaking: <i>${t}</i>`,
@@ -49,7 +49,7 @@ const TEMPLATES = [
   (t) => `🛰 <b>System Alert</b>\nStatus update: <i>${t}</i>`,
 ];
 
-// ── Decryption ────────────────────────────────────────────────────────────────
+// ── Decryption — mirrors src/lib/crypto.ts ─────────────────────────────────
 let _keyPromise = null;
 async function getKey() {
   if (_keyPromise) return _keyPromise;
@@ -81,7 +81,7 @@ async function decrypt(ciphertext) {
   }
 }
 
-// ── Telegram sender ───────────────────────────────────────────────────────────
+// ── Telegram sender ─────────────────────────────────────────────────────────
 async function sendTelegram(text) {
   const url = `https://api.telegram.org/bot${TG_FWD_BOT_TOKEN}/sendMessage`;
   const res = await fetch(url, {
@@ -91,7 +91,7 @@ async function sendTelegram(text) {
   });
   if (!res.ok) {
     const body = await res.text();
-    console.error("[TGFwd] Telegram API error:", body);
+    console.error("Telegram API error:", body);
   }
 }
 
@@ -100,7 +100,7 @@ function truncate(str, max = 100) {
   return str.length > max ? str.slice(0, max) + "…" : str;
 }
 
-// ── Realtime listener ─────────────────────────────────────────────────────────
+// ── Realtime listener ───────────────────────────────────────────────────────
 supabase
   .channel("tg-fwd-listener")
   .on(
@@ -121,20 +121,16 @@ supabase
 
       const template = TEMPLATES[Math.floor(Math.random() * TEMPLATES.length)];
       await sendTelegram(template(preview));
-
-      state.forwarded++;
-      state.last_forwarded = new Date().toISOString();
     }
   )
   .subscribe((status) => {
     console.log("[TGFwd] Realtime status:", status);
     if (status === "SUBSCRIBED") {
-      state.status = "online";
-      state.error = null;
+      console.log("[TGFwd] ✅ Listening for new messages...");
+      sendTelegram("🛰 <b>System Alert</b>\nStatus update: Bot online and listening.").catch(() => {});
     } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-      state.status = "error";
-      state.error = `Realtime: ${status}`;
+      console.error("[TGFwd] ❌ Realtime failed:", status, "— check Supabase Replication is ON for messages table");
     }
   });
 
-console.log("[TGFwd] Forward bot running 📡");
+console.log("Telegram Forward Bot is running...");

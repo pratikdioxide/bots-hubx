@@ -1,19 +1,25 @@
 /**
  * NestX · Instagram Reel → Chat Bot
- * You send an Instagram reel/post URL to this Telegram bot.
- * It inserts the URL into the Supabase messages table as admin.
+ * ------------------------------------
+ * You send an Instagram reel/post URL to THIS Telegram bot.
+ * The bot inserts it into the Supabase messages table as admin "bleh".
+ * Nothing appears in the admin panel — all config is via env vars.
  *
- * ENV VARS:
+ * Deploy on Render (free tier) as a background worker.
+ * Ping every 5 min from UptimeRobot to keep it alive.
+ *
+ * ENV VARS (set in Render dashboard):
  *   TG_IG_BOT_TOKEN      Telegram bot token from @BotFather
- *   ADMIN_TG_USER_ID     Your personal Telegram user ID
+ *   ADMIN_TG_USER_ID     Your personal Telegram user ID (get from @userinfobot)
  *   SUPABASE_URL         e.g. https://xxxx.supabase.co
- *   SUPABASE_SERVICE_KEY Supabase service-role secret key
- *   ADMIN_SENDER_ID      UUID of the admin user in your auth.users table
+ *   SUPABASE_SERVICE_KEY Supabase service-role secret key (Settings → API)
+ *   ADMIN_SENDER_ID      UUID of the "bleh" user row in your auth.users table
+ *
+ * Install deps: npm install node-telegram-bot-api @supabase/supabase-js
  */
 
 const TelegramBot = require("node-telegram-bot-api");
 const { createClient } = require("@supabase/supabase-js");
-const { botStatuses } = require("./state");
 
 const {
   TG_IG_BOT_TOKEN,
@@ -23,23 +29,16 @@ const {
   ADMIN_SENDER_ID,
 } = process.env;
 
-const state = botStatuses.igReel;
-
 if (!TG_IG_BOT_TOKEN || !SUPABASE_URL || !SUPABASE_SERVICE_KEY || !ADMIN_SENDER_ID) {
-  state.status = "error";
-  state.error = "Missing required env vars";
-  console.error("[IGReel] Missing required env vars — bot disabled.");
-  return;
+  console.error("Missing required env vars. Check TG_IG_BOT_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY, ADMIN_SENDER_ID.");
+  process.exit(1);
 }
 
+const bot = new TelegramBot(TG_IG_BOT_TOKEN, { polling: true });
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 const ALLOWED_TG_ID = Number(ADMIN_TG_USER_ID);
-const IG_URL_RE = /https?:\/\/(www\.)?instagram\.com\/(reel|p|tv)\/[\w-]+\/?/i;
 
-const bot = new TelegramBot(TG_IG_BOT_TOKEN, { polling: true });
-
-state.status = "online";
-console.log("[IGReel] Bot running 📸");
+const ANY_URL_RE = /https?:\/\/[^\s]+/i;
 
 bot.on("message", async (msg) => {
   const tgId = msg.from?.id;
@@ -51,21 +50,14 @@ bot.on("message", async (msg) => {
 
   const text = (msg.text || "").trim();
 
-  if (text === "/status") {
-    bot.sendMessage(msg.chat.id,
-      `📸 <b>IG Reel Bot</b>\n\n🟢 Online\n📤 Posts sent: <code>${state.posts}</code>\n🕓 Last post: <code>${state.last_post || "—"}</code>`,
-      { parse_mode: "HTML" }
-    );
+  if (!text) {
+    bot.sendMessage(msg.chat.id, "Send me any URL or text to post to the chat.");
     return;
   }
 
-  const match = text.match(IG_URL_RE);
-  if (!match) {
-    bot.sendMessage(msg.chat.id, "Send me an Instagram reel or post URL (must contain /reel/, /p/, or /tv/).");
-    return;
-  }
+  const match = text.match(ANY_URL_RE);
+  const url = match ? match[0] : text;
 
-  const url = match[0];
   const { error } = await supabase.from("messages").insert({
     sender_id: ADMIN_SENDER_ID,
     content: url,
@@ -74,17 +66,13 @@ bot.on("message", async (msg) => {
   });
 
   if (error) {
-    console.error("[IGReel] Supabase insert error:", error);
+    console.error("Supabase insert error:", error);
     bot.sendMessage(msg.chat.id, `❌ Failed to post: ${error.message}`);
   } else {
-    state.posts++;
-    state.last_post = new Date().toISOString();
     bot.sendMessage(msg.chat.id, "✅ Reel posted to the chat.");
   }
 });
 
-bot.on("polling_error", (err) => {
-  console.error("[IGReel] Polling error:", err.message);
-  state.status = "error";
-  state.error = err.message;
-});
+bot.on("polling_error", (err) => console.error("Polling error:", err.message));
+
+console.log("Instagram Reel Bot is running...");
