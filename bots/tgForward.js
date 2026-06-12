@@ -177,19 +177,26 @@ supabase
     "postgres_changes",
     { event: "INSERT", schema: "public", table: "messages" },
     async ({ new: row }) => {
-      if (row.sender_id === ADMIN_SENDER_ID) return;
+      console.log(`[TGFwd] INSERT received | sender_id: ${row.sender_id} | ADMIN_SENDER_ID: ${ADMIN_SENDER_ID} | match: ${row.sender_id === ADMIN_SENDER_ID}`);
+
+      if (row.sender_id === ADMIN_SENDER_ID) {
+        console.log("[TGFwd] Skipping — message is from admin.");
+        return;
+      }
+
+      console.log(`[TGFwd] isAdminOnline: ${isAdminOnline()} | session.notified: ${session.notified}`);
 
       if (isAdminOnline()) {
-        console.log("[TGFwd] New message — admin online, skipping.");
+        console.log("[TGFwd] Skipping — admin is online.");
         return;
       }
 
       if (session.notified) {
-        console.log("[TGFwd] New message — already notified this session, skipping.");
+        console.log("[TGFwd] Skipping — already notified this session.");
         return;
       }
 
-      console.log("[TGFwd] New message — sending first notification.");
+      console.log("[TGFwd] Sending weather notification...");
       await notify(false);
     }
   )
