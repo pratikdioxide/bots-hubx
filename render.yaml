@@ -1,0 +1,44 @@
+services:
+  - type: web
+    name: nestx-bots
+    runtime: node
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      # ── Health server ──────────────────────────────
+      - key: PORT
+        generateValue: false
+
+      # ── Drogon (Lookup Bot) ────────────────────────
+      - key: BOT_TOKEN
+        sync: false
+      - key: API_BASE_URL
+        sync: false
+      - key: ALLOWED_USER_IDS
+        sync: false
+      - key: CHANNEL_ID
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+
+      # ── Instagram Reel Bot ─────────────────────────
+      - key: TG_IG_BOT_TOKEN
+        sync: false
+      - key: ADMIN_TG_USER_ID
+        sync: false
+
+      # ── TG Forward Bot ─────────────────────────────
+      - key: TG_FWD_BOT_TOKEN
+        sync: false
+      - key: TG_CHAT_ID
+        sync: false
+      - key: CHAT_SECRET
+        sync: false
+
+      # ── Shared (IG Reel + TG Forward) ──────────────
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: ADMIN_SENDER_ID
+        sync: false
