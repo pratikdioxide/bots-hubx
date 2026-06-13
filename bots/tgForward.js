@@ -183,21 +183,6 @@ bot.onText(/^\/ping/, (msg) => {
   bot.sendMessage(msg.chat.id, `🏓 pong · uptime ${up}s`);
 });
 
-bot.onText(/^\/status/, async (msg) => {
-  if (String(msg.chat.id) !== String(TG_CHAT_ID)) return;
-  const online = await isAdminOnline();
-  const text =
-    `<b>📊 Bot Status</b>\n\n` +
-    `Uptime: ${Math.floor((Date.now() - startedAt) / 1000)}s\n` +
-    `Location: <code>${WEATHER_LOCATION}</code>\n` +
-    `Admin name: <code>${ADMIN_NAME}</code>\n` +
-    `Admin online: <b>${online ? "YES" : "no"}</b>\n` +
-    `Session notified: <b>${session.notified ? "YES" : "no"}</b>\n` +
-    `Reminder armed: <b>${session.reminderTimer ? "YES" : "no"}</b>\n` +
-    `CHAT_SECRET set: ${CHAT_SECRET ? "✅" : "❌"}\n` +
-    `ADMIN_SENDER_ID: <code>${ADMIN_SENDER_ID.slice(0, 8)}…</code>`;
-  bot.sendMessage(msg.chat.id, text, { parse_mode: "HTML" });
-});
 
 bot.onText(/^\/test/, async (msg) => {
   if (String(msg.chat.id) !== String(TG_CHAT_ID)) return;
@@ -257,7 +242,7 @@ async function start() {
         await tg(await getWeather());
         await tg(
           `Commands:\n` +
-          `/ping · /status · /test · /weather · /reset`,
+          `/ping · /test · /weather · /reset`,
         );
       } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
         await tg(`❌ Realtime failed: <code>${status}</code> — enable Replication for public.messages.`);
