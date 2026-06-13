@@ -67,9 +67,9 @@ bot.on("message", async (msg) => {
 
   if (error) {
     console.error("Supabase insert error:", error);
-    bot.sendMessage(msg.chat.id, `❌ Failed to post: ${error.message}`);
+    bot.sendMessage(msg.chat.id, `❌ Failed: ${error.message}`);
   } else {
-    bot.sendMessage(msg.chat.id, "✅ Reel posted to the chat.");
+    bot.sendMessage(msg.chat.id, "✅.");
   }
 });
 
