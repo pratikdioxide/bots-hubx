@@ -62,7 +62,7 @@ bot.on("message", async (msg) => {
     sender_id: ADMIN_SENDER_ID,
     content: url,
     reply_to_id: null,
-    file_type: null,
+    file_type: "instagram",
   });
 
   if (error) {
