@@ -55,12 +55,6 @@ const ONLINE_THRESHOLD_MS = 2 * 60 * 1000; // 2 min — presence row updates oft
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 const bot = new TelegramBot(TG_FWD_BOT_TOKEN, { polling: true });
-
-// Optional HTTP listener so Render Web Service + UptimeRobot can ping us
-require("http")
-  .createServer((_, res) => res.end("ok"))
-  .listen(process.env.PORT || 3000);
-
 const startedAt = Date.now();
 const session = { notified: false, reminderTimer: null };
 
