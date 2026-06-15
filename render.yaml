@@ -27,14 +27,6 @@ services:
       - key: ADMIN_TG_USER_ID
         sync: false
 
-      # ── TG Forward Bot ─────────────────────────────
-      - key: TG_FWD_BOT_TOKEN
-        sync: false
-      - key: TG_CHAT_ID
-        sync: false
-      - key: CHAT_SECRET
-        sync: false
-
       # ── Shared (IG Reel + TG Forward) ──────────────
       - key: SUPABASE_URL
         sync: false
