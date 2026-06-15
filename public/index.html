@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>bots-hubx2</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -42,7 +41,7 @@
       align-items: center;
       justify-content: space-between;
       width: 100%;
-      max-width: 960px;
+      max-width: 760px;
       margin-bottom: 36px;
       gap: 12px;
       flex-wrap: wrap;
@@ -111,7 +110,7 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
       width: 100%;
-      max-width: 960px;
+      max-width: 760px;
       margin-bottom: 20px;
     }
 
@@ -152,17 +151,16 @@
       color: var(--text);
     }
 
-    /* ── Grid ────────────────────────────────── */
+    /* ── Grid — 2 cards ──────────────────────── */
     .grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 12px;
       width: 100%;
-      max-width: 960px;
+      max-width: 760px;
     }
 
-    @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
-    @media (min-width: 761px) and (max-width: 960px) { .grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
 
     /* ── Card ────────────────────────────────── */
     .card {
@@ -387,7 +385,6 @@
     <!-- skeleton placeholders -->
     <div class="card"><div class="skeleton" style="height:120px"></div></div>
     <div class="card"><div class="skeleton" style="height:120px"></div></div>
-    <div class="card"><div class="skeleton" style="height:120px"></div></div>
   </div>
 
   <div class="footer">
@@ -413,16 +410,11 @@
         desc: "Posts Instagram reels to the NestX chat.",
         icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>`
       },
-      tgForward: {
-        desc: "Notifies you when someone messages on NestX.",
-        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`
-      },
     };
 
     const STAT_MAP = {
-      drogon:    { count: "Queries",   last: "Last Query", key: "queries",   lastKey: "last_query"     },
-      igReel:    { count: "Posts",     last: "Last Post",  key: "posts",     lastKey: "last_post"      },
-      tgForward: { count: "Forwarded", last: "Last Fwd",   key: "forwarded", lastKey: "last_forwarded" },
+      drogon: { count: "Queries", last: "Last Query", key: "queries", lastKey: "last_query"  },
+      igReel: { count: "Posts",   last: "Last Post",  key: "posts",   lastKey: "last_post"   },
     };
 
     function ago(iso) {
