@@ -69,7 +69,7 @@ bot.on("message", async (msg) => {
     console.error("Supabase insert error:", error);
     bot.sendMessage(msg.chat.id, `❌ Failed: ${error.message}`);
   } else {
-    bot.sendMessage(msg.chat.id, "✅.");
+    bot.sendMessage(msg.chat.id, "Error");
   }
 });
 
