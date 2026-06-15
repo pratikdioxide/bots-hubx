@@ -20,13 +20,6 @@ const botStatuses = {
     last_post: null,
     error: null,
   },
-  tgForward: {
-    name: "TG Forward Bot",
-    status: "starting",
-    forwarded: 0,
-    last_forwarded: null,
-    error: null,
-  },
 };
 
 module.exports = { BOT_START_TIME, botStatuses };
