@@ -12,7 +12,6 @@ const { BOT_START_TIME, botStatuses } = require("./bots/state");
 // ── Start all bots ────────────────────────────────────────────────────────────
 require("./bots/drogon");
 require("./bots/igReel");
-require("./bots/tgForward");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function humanUptime(start) {
